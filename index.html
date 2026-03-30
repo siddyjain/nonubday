@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Nonu & Baby Prince!! 🎉</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FF3D6E;
+    --orange: #FF7C3E;
+    --yellow: #FFD23F;
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --text: #fff;
+    --muted: rgba(255,255,255,0.45);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+    height: 100dvh;
+    width: 100vw;
+    user-select: none;
+  }
+
+  /* ── Splash Screen ── */
+  #splash {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px;
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  #splash.hidden { opacity: 0; pointer-events: none; transform: scale(1.05); }
+
+  .splash-title {
+    font-family: 'Abril Fatface', serif;
+    font-size: clamp(42px, 10vw, 82px);
+    background: linear-gradient(135deg, var(--pink), var(--orange), var(--yellow));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-align: center; line-height: 1.1;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.2); }
+  }
+
+  .splash-sub {
+    font-size: 16px; color: var(--muted);
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+
+  .confetti-ring {
+    font-size: 36px; letter-spacing: 10px;
+    animation: spin 6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .enter-btn {
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--pink), var(--orange));
+    border: none; color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 500;
+    padding: 14px 38px; border-radius: 100px;
+    cursor: pointer; letter-spacing: 0.05em;
+    box-shadow: 0 0 40px rgba(255,61,110,0.45);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .enter-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 60px rgba(255,61,110,0.65);
+  }
+  .enter-btn:active { transform: scale(0.97); }
+
+  /* ── Main Player ── */
+  #player {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Video Stack ── */
+  #video-stack {
+    position: relative;
+    width: 100%; height: 100dvh;
+    overflow: hidden;
+  }
+
+  .video-slide {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.45s ease;
+    will-change: transform;
+  }
+  .video-slide.active  { transform: translateY(0); opacity: 1; z-index: 2; }
+  .video-slide.above   { transform: translateY(-100%); opacity: 0; z-index: 1; }
+  .video-slide.below   { transform: translateY(100%); opacity: 0; z-index: 1; }
+
+  .video-slide video {
+    width: 100%; height: 100dvh;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── Overlay UI ── */
+  .slide-overlay {
+    position: absolute; inset: 0; z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.35) 0%,
+      transparent 25%,
+      transparent 60%,
+      rgba(0,0,0,0.75) 100%
+    );
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    padding: 24px 20px 36px;
+  }
+
+  .slide-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+
+  .slide-badge {
+    font-family: 'Abril Fatface', serif;
+    font-size: 15px;
+    background: linear-gradient(135deg, var(--pink), var(--orange));
+    padding: 5px 14px; border-radius: 100px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 14px rgba(255,61,110,0.5);
+  }
+
+  .slide-counter {
+    font-size: 13px; color: var(--muted);
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    padding: 5px 12px; border-radius: 100px;
+  }
+
+  .slide-bottom { display: flex; flex-direction: column; gap: 10px; }
+
+  .slide-caption {
+    font-family: 'Abril Fatface', serif;
+    font-size: clamp(22px, 5vw, 36px);
+    line-height: 1.2;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  }
+
+  .slide-caption .highlight {
+    background: linear-gradient(90deg, var(--pink), var(--orange), var(--yellow));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .slide-hint { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .slide-hint span { animation: bounce 1.6s ease-in-out infinite; display: inline-block; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+  /* ── Side Actions ── */
+  .side-actions {
+    position: absolute; right: 16px; bottom: 120px; z-index: 10;
+    display: flex; flex-direction: column; gap: 20px; align-items: center;
+    pointer-events: all;
+  }
+
+  .action-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .action-btn:hover { background: rgba(255,255,255,0.22); transform: scale(1.1); }
+  .action-btn:active { transform: scale(0.92); }
+  .action-btn.liked { background: rgba(255,61,110,0.35); border-color: var(--pink); }
+
+  /* ── Upload Panel ── */
+  #upload-panel {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: var(--surface);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 24px 32px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    max-height: 75dvh; overflow-y: auto;
+  }
+  #upload-panel.open { transform: translateY(0); }
+
+  .panel-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.2);
+    margin: 0 auto 20px;
+  }
+
+  .panel-title {
+    font-family: 'Abril Fatface', serif;
+    font-size: 22px; margin-bottom: 6px;
+    background: linear-gradient(90deg, var(--pink), var(--orange));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .panel-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+
+  .drop-zone {
+    border: 2px dashed rgba(255,61,110,0.4);
+    border-radius: 14px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 16px;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--pink);
+    background: rgba(255,61,110,0.07);
+  }
+  .drop-zone .dz-icon { font-size: 36px; margin-bottom: 10px; }
+  .drop-zone p { font-size: 14px; color: var(--muted); }
+  .drop-zone strong { color: var(--text); }
+
+  #file-input { display: none; }
+
+  .video-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .video-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .video-item .vi-thumb {
+    width: 52px; height: 52px; border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    flex-shrink: 0; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .video-item .vi-thumb video {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .video-item .vi-info { flex: 1; min-width: 0; }
+  .video-item .vi-name {
+    font-size: 14px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .video-item .vi-size { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .video-item .vi-caption-input {
+    width: 100%; background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 6px 10px;
+    color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; margin-top: 6px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .video-item .vi-caption-input:focus { border-color: var(--pink); }
+  .video-item .vi-caption-input::placeholder { color: var(--muted); }
+  .vi-remove {
+    background: none; border: none; color: var(--muted);
+    font-size: 18px; cursor: pointer; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .vi-remove:hover { color: var(--pink); }
+
+  .panel-cta {
+    margin-top: 18px;
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--pink), var(--orange));
+    border: none; border-radius: 12px;
+    color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 500; cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .panel-cta:hover { opacity: 0.9; transform: scale(1.01); }
+  .panel-cta:active { transform: scale(0.98); }
+
+  /* ── Empty State ── */
+  #empty-state {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px; z-index: 3; text-align: center; padding: 40px;
+  }
+  #empty-state .es-icon { font-size: 60px; }
+  #empty-state h2 {
+    font-family: 'Abril Fatface', serif; font-size: 28px;
+    background: linear-gradient(135deg, var(--pink), var(--orange));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  #empty-state p { color: var(--muted); font-size: 15px; max-width: 260px; line-height: 1.6; }
+  #empty-state .es-btn {
+    margin-top: 8px;
+    background: linear-gradient(135deg, var(--pink), var(--orange));
+    border: none; color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500;
+    padding: 12px 30px; border-radius: 100px;
+    cursor: pointer; transition: transform 0.15s;
+    box-shadow: 0 0 30px rgba(255,61,110,0.4);
+  }
+  #empty-state .es-btn:hover { transform: scale(1.05); }
+
+  /* ── Progress dots ── */
+  #progress-dots {
+    position: fixed; right: 8px; top: 50%;
+    transform: translateY(-50%); z-index: 10;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+  .dot {
+    width: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.25);
+    transition: all 0.3s ease;
+  }
+  .dot.active {
+    background: var(--pink);
+    box-shadow: 0 0 8px var(--pink);
+  }
+
+  /* ── Mute indicator ── */
+  #mute-toast {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(12px);
+    border-radius: 50%; width: 72px; height: 72px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; opacity: 0; z-index: 20;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  #mute-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  /* ── Floating confetti ── */
+  .confetti-piece {
+    position: fixed; pointer-events: none;
+    width: 8px; height: 8px; border-radius: 2px;
+    animation: fall linear forwards;
+    z-index: 200;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110dvh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ── Overlay tap zone ── */
+  #tap-zone {
+    position: fixed; inset: 0; z-index: 8;
+    /* Leave room on the right for side action buttons */
+    right: 80px;
+  }
+
+  /* ── Tile View ── */
+  #tile-view {
+    position: fixed; inset: 0; z-index: 40;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transform: translateY(30px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22,1,0.36,1);
+    overflow: hidden;
+  }
+  #tile-view.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+  .tile-header {
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .tile-header-title {
+    font-family: 'Abril Fatface', serif; font-size: 22px;
+    background: linear-gradient(90deg, var(--pink), var(--orange));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tile-close-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .tile-close-btn:hover { background: rgba(255,255,255,0.16); transform: scale(1.08); }
+
+  .tile-grid {
+    flex: 1; overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px; padding: 14px;
+    align-content: start;
+  }
+
+  .tile-card {
+    position: relative; border-radius: 12px; overflow: hidden;
+    aspect-ratio: 9/16; cursor: pointer;
+    background: var(--surface);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .tile-card:hover { transform: scale(1.04); box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+  .tile-card:active { transform: scale(0.97); }
+  .tile-card video { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+
+  .tile-card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.8) 100%);
+    display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 10px 8px;
+  }
+  .tile-card-num { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .tile-card-caption {
+    font-size: 12px; font-weight: 500; line-height: 1.3; color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+    overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .tile-card .play-icon {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px; opacity: 0;
+    transition: opacity 0.2s; pointer-events: none;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+  }
+  .tile-card:hover .play-icon { opacity: 1; }
+  .tile-card.liked-tile::after {
+    content: '❤️'; position: absolute; top: 8px; right: 8px; font-size: 14px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="confetti-ring">🎂🎉🎊🎈</div>
+  <div class="splash-title">Happy Birthday Nonu<br>&amp; Happy Birthday<br>Baby Prince!!</div>
+  <div class="splash-sub">Lots of love and kisses from all your friends and family ✨</div>
+  <button class="enter-btn" onclick="enterSite()">Open Your Gift 🎁</button>
+</div>
+
+<!-- PLAYER -->
+<div id="player" style="display:none">
+  <div id="video-stack">
+    <div id="empty-state">
+      <div class="es-icon">🎬</div>
+      <h2>Add Your Videos!</h2>
+      <p>Tap below to upload birthday videos from your device</p>
+      <button class="es-btn" onclick="openPanel()">Upload Videos</button>
+    </div>
+  </div>
+
+  <div id="progress-dots"></div>
+
+  <div class="side-actions" id="side-actions" style="display:none">
+    <div class="action-btn" id="like-btn" title="Love it!" onclick="toggleLike()">🤍</div>
+    <div class="action-btn" title="Mute/Unmute" onclick="toggleMute()">🔊</div>
+    <div class="action-btn" title="All Wishes" onclick="openTileView()">⊞</div>
+    <div class="action-btn" title="Upload more" onclick="openPanel()">➕</div>
+  </div>
+
+  <div id="tap-zone"></div>
+</div>
+
+<!-- TILE VIEW -->
+<div id="tile-view">
+  <div class="tile-header">
+    <div class="tile-header-title">All Wishes 🎉</div>
+    <div class="tile-close-btn" onclick="closeTileView()">✕</div>
+  </div>
+  <div class="tile-grid" id="tile-grid"></div>
+</div>
+
+<!-- MUTE TOAST -->
+<div id="mute-toast">🔇</div>
+
+<!-- UPLOAD PANEL -->
+<div id="upload-panel">
+  <div class="panel-handle"></div>
+  <div class="panel-title">Add Videos 🎬</div>
+  <div class="panel-sub">Upload birthday videos from your device</div>
+
+  <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="dz-icon">📁</div>
+    <p><strong>Click to browse</strong> or drag & drop videos here</p>
+    <p style="margin-top:6px;font-size:12px">MP4, MOV, WebM supported</p>
+  </div>
+  <input type="file" id="file-input" multiple accept="video/*">
+
+  <div class="video-list" id="video-list"></div>
+
+  <button class="panel-cta" onclick="applyVideos()">🎉 Let's Go!</button>
+</div>
+
+<script>
+// ── State ──
+let videos = [];          // { url, name, caption, liked }
+let currentIndex = 0;
+let isMuted = false;
+let touchStartY = 0;
+let isDragging = false;
+let panelOpen = false;
+
+// ── Splash ──
+function enterSite() {
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('player').style.display = '';
+  launchConfetti();
+  openPanel();
+}
+
+// ── Confetti ──
+function launchConfetti() {
+  const colors = ['#FF3D6E','#FF7C3E','#FFD23F','#9B5DE5','#00F5D4','#fff'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left:${Math.random()*100}vw;
+        top:-10px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        animation-duration:${2+Math.random()*3}s;
+        animation-delay:${Math.random()*0.5}s;
+        width:${6+Math.random()*8}px;
+        height:${6+Math.random()*8}px;
+        border-radius:${Math.random()>0.5?'50%':'2px'};
+      `;
+      document.body.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }, i * 50);
+  }
+}
+
+// ── Panel ──
+function openPanel() {
+  document.getElementById('upload-panel').classList.add('open');
+  panelOpen = true;
+}
+function closePanel() {
+  document.getElementById('upload-panel').classList.remove('open');
+  panelOpen = false;
+}
+
+// ── File Input ──
+const fileInput = document.getElementById('file-input');
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('video/')) return;
+    const url = URL.createObjectURL(file);
+    const name = file.name.replace(/\.[^/.]+$/, '');
+    videos.push({ url, name, caption: '', liked: false, size: file.size });
+    renderVideoList();
+  });
+}
+
+function renderVideoList() {
+  const list = document.getElementById('video-list');
+  list.innerHTML = '';
+  videos.forEach((v, i) => {
+    const item = document.createElement('div');
+    item.className = 'video-item';
+    item.innerHTML = `
+      <div class="vi-thumb">
+        <video src="${v.url}" muted preload="metadata"></video>
+      </div>
+      <div class="vi-info">
+        <div class="vi-name">${v.name}</div>
+        <div class="vi-size">${formatSize(v.size)}</div>
+        <input class="vi-caption-input" type="text" placeholder="Add a caption…"
+          value="${v.caption}" oninput="videos[${i}].caption=this.value">
+      </div>
+      <button class="vi-remove" onclick="removeVideo(${i})">✕</button>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function removeVideo(i) {
+  URL.revokeObjectURL(videos[i].url);
+  videos.splice(i, 1);
+  renderVideoList();
+}
+
+function formatSize(bytes) {
+  if (bytes > 1e6) return (bytes/1e6).toFixed(1) + ' MB';
+  return (bytes/1e3).toFixed(0) + ' KB';
+}
+
+// ── Build Slides ──
+function applyVideos() {
+  if (videos.length === 0) { closePanel(); return; }
+  closePanel();
+  buildSlides();
+  currentIndex = 0;
+  showSlide(currentIndex);
+  updateDots();
+  document.getElementById('side-actions').style.display = '';
+  document.getElementById('empty-state').style.display = 'none';
+}
+
+function buildSlides() {
+  const stack = document.getElementById('video-stack');
+  // Remove old slides
+  stack.querySelectorAll('.video-slide').forEach(s => s.remove());
+
+  videos.forEach((v, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'video-slide below';
+    slide.dataset.index = i;
+
+    const video = document.createElement('video');
+    video.src = v.url;
+    video.loop = true;
+    video.muted = isMuted;
+    video.playsInline = true;
+    video.preload = 'metadata';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'slide-overlay';
+    overlay.innerHTML = `
+      <div class="slide-top">
+        <div class="slide-badge">🎂 Nonu's Day</div>
+        <div class="slide-counter">${i+1} / ${videos.length}</div>
+      </div>
+      <div class="slide-bottom">
+        <div class="slide-caption">
+          ${v.caption || `<span class="highlight">Wish #${i+1}</span>`}
+        </div>
+        ${videos.length > 1 ? `<div class="slide-hint"><span>↑</span> Swipe to see more</div>` : ''}
+      </div>
+    `;
+
+    slide.appendChild(video);
+    slide.appendChild(overlay);
+    stack.appendChild(slide);
+  });
+
+  updateDots();
+}
+
+function showSlide(index) {
+  const slides = document.querySelectorAll('.video-slide');
+  slides.forEach((s, i) => {
+    s.classList.remove('active','above','below');
+    if (i === index) s.classList.add('active');
+    else if (i < index) s.classList.add('above');
+    else s.classList.add('below');
+
+    const vid = s.querySelector('video');
+    if (i === index) {
+      vid.muted = isMuted;
+      vid.play().catch(()=>{});
+    } else {
+      vid.pause();
+    }
+  });
+  updateDots();
+}
+
+function goNext() {
+  if (currentIndex < videos.length - 1) {
+    currentIndex++;
+    showSlide(currentIndex);
+  }
+}
+function goPrev() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    showSlide(currentIndex);
+  }
+}
+
+// ── Progress Dots ──
+function updateDots() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  videos.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === currentIndex ? ' active' : '');
+    const h = i === currentIndex ? 20 : 8;
+    d.style.height = h + 'px';
+    container.appendChild(d);
+  });
+}
+
+// ── Touch / Swipe ──
+const tapZone = document.getElementById('tap-zone');
+tapZone.addEventListener('touchstart', e => {
+  touchStartY = e.touches[0].clientY;
+  isDragging = false;
+}, { passive: true });
+
+tapZone.addEventListener('touchmove', e => {
+  isDragging = true;
+}, { passive: true });
+
+tapZone.addEventListener('touchend', e => {
+  if (!isDragging) return;
+  const dy = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(dy) > 40) {
+    dy > 0 ? goNext() : goPrev();
+  }
+  isDragging = false;
+});
+
+// ── Mouse Wheel ──
+let wheelLock = false;
+document.addEventListener('wheel', e => {
+  if (panelOpen || wheelLock || document.getElementById('tile-view').classList.contains('open')) return;
+  wheelLock = true;
+  e.deltaY > 0 ? goNext() : goPrev();
+  setTimeout(() => wheelLock = false, 600);
+}, { passive: true });
+
+// ── Keyboard ──
+document.addEventListener('keydown', e => {
+  if (panelOpen) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  goPrev();
+  if (e.key === 'Escape') { closePanel(); closeTileView(); }
+});
+
+// ── Tap to pause/play ──
+tapZone.addEventListener('click', e => {
+  if (panelOpen) return;
+  const slide = document.querySelector('.video-slide.active');
+  if (!slide) return;
+  const vid = slide.querySelector('video');
+  if (vid.paused) vid.play();
+  else vid.pause();
+});
+
+// ── Mute ──
+function toggleMute() {
+  isMuted = !isMuted;
+  document.querySelectorAll('.video-slide video').forEach(v => v.muted = isMuted);
+  const btn = document.querySelector('.action-btn[title="Mute/Unmute"]');
+  btn.textContent = isMuted ? '🔇' : '🔊';
+  showMuteToast();
+}
+
+function showMuteToast() {
+  const t = document.getElementById('mute-toast');
+  t.textContent = isMuted ? '🔇' : '🔊';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 900);
+}
+
+// ── Like ──
+function toggleLike() {
+  if (!videos[currentIndex]) return;
+  videos[currentIndex].liked = !videos[currentIndex].liked;
+  const btn = document.getElementById('like-btn');
+  btn.textContent = videos[currentIndex].liked ? '❤️' : '🤍';
+  btn.classList.toggle('liked', videos[currentIndex].liked);
+  if (videos[currentIndex].liked) launchConfetti();
+}
+
+// ── Tile View ──
+function openTileView() {
+  buildTileGrid();
+  document.getElementById('tile-view').classList.add('open');
+  // Pause current video while in tile view
+  const active = document.querySelector('.video-slide.active video');
+  if (active) active.pause();
+}
+
+function closeTileView() {
+  document.getElementById('tile-view').classList.remove('open');
+  // Resume current video
+  const active = document.querySelector('.video-slide.active video');
+  if (active) active.play().catch(()=>{});
+}
+
+function buildTileGrid() {
+  const grid = document.getElementById('tile-grid');
+  grid.innerHTML = '';
+  videos.forEach((v, i) => {
+    const card = document.createElement('div');
+    card.className = 'tile-card' + (v.liked ? ' liked-tile' : '');
+    card.innerHTML = `
+      <video src="${v.url}" muted preload="metadata" playsinline></video>
+      <div class="tile-card-overlay">
+        <div class="tile-card-num">Wish ${i+1}</div>
+        <div class="tile-card-caption">${v.caption || 'Wish #'+(i+1)}</div>
+      </div>
+      <div class="play-icon">▶</div>
+    `;
+    card.addEventListener('click', () => jumpToSlide(i));
+    grid.appendChild(card);
+  });
+}
+
+function jumpToSlide(index) {
+  closeTileView();
+  currentIndex = index;
+  showSlide(currentIndex);
+  updateDots();
+}
+
+// ── Close panel on outside tap ──
+document.getElementById('tap-zone').addEventListener('touchend', () => {
+  if (panelOpen) closePanel();
+});
+</script>
+</body>
+</html>
